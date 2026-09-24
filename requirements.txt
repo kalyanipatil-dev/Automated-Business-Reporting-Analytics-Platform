@@ -4,3 +4,4 @@ fastapi
 uvicorn
 schedule
 python-dotenv
+plotly
