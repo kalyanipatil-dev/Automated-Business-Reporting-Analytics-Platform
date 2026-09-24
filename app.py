@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import streamlit as st
 
 from analytics import calculate_kpis, generate_monthly_summary
 from reports import export_to_excel, export_to_csv, export_to_pdf
@@ -111,3 +112,31 @@ if uploaded_file:
                 file_name="report.pdf",
                 mime="application/pdf"
             )
+
+# Premium Graphical Analytics Background
+page_bg_img = """
+<style>
+[data-testid="stAppViewContainer"] {
+background-image: url("https://images.unsplash.com/photo-1627556704304-1d6f5a8a7c2f"); /* Futuristic analytics theme */
+background-size: cover;
+background-repeat: no-repeat;
+background-attachment: fixed;
+}
+
+[data-testid="stHeader"] {
+background: rgba(0,0,0,0);
+}
+
+[data-testid="stSidebar"] {
+background: rgba(15,15,15,0.9);
+}
+
+.block-container {
+background: rgba(20,20,20,0.7);
+border-radius: 12px;
+padding: 20px;
+}
+</style>
+"""
+
+st.markdown(page_bg_img, unsafe_allow_html=True)
