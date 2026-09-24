@@ -31,7 +31,9 @@ if uploaded_file:
     # -----------------------------
     st.subheader("Key Performance Indicators (KPIs)")
     kpis = calculate_kpis(df)
-    st.write(kpis)
+
+    for key, value in kpis.items():
+        st.write(f"**{key}:** {value}")
 
     # -----------------------------
     # 4. MONTHLY SUMMARY (from analytics.py)
