@@ -4,7 +4,7 @@ def calculate_kpis(df):
     """Return basic KPIs for business reporting."""
     kpis = {}
 
-    # Total rows
+    # Total records
     kpis["total_records"] = len(df)
 
     # Numeric column summaries
@@ -18,10 +18,18 @@ def calculate_kpis(df):
     return kpis
 
 
-def generate_monthly_summary(df, date_column):
+def generate_monthly_summary(df, date_column="Date"):
     """Generate monthly summary based on a date column."""
+    if date_column not in df.columns:
+        return None
+
+    # Convert date column safely
     df[date_column] = pd.to_datetime(df[date_column], errors="coerce")
+
+    # Extract month
     df["month"] = df[date_column].dt.to_period("M")
 
+    # Group by month and sum numeric columns
     summary = df.groupby("month").sum(numeric_only=True)
-    return summary
+
+    return summary.reset_index()
