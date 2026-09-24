@@ -1,30 +1,15 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from fpdf import FPDF
+
+from analytics import calculate_kpis, generate_monthly_summary
+from reports import export_to_excel, export_to_csv, export_to_pdf
 
 st.set_page_config(page_title="Business Reporting & Analytics", layout="wide")
 
 st.title("📊 Automated Business Reporting & Analytics Platform")
 
 uploaded_file = st.file_uploader("Upload your business data (CSV)", type=["csv"])
-
-# PDF generator function
-def generate_pdf(df):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-
-    pdf.cell(200, 10, txt="Business Report Summary", ln=True)
-
-    for col in df.columns:
-        try:
-            pdf.cell(200, 10, txt=f"{col}: {df[col].iloc[0]}", ln=True)
-        except:
-            pass
-
-    pdf.output("report.pdf")
-
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
@@ -42,7 +27,22 @@ if uploaded_file:
     st.write(df.describe())
 
     # -----------------------------
-    # 3. MONTHLY SALES TREND
+    # 3. KPIs (from analytics.py)
+    # -----------------------------
+    st.subheader("Key Performance Indicators (KPIs)")
+    kpis = calculate_kpis(df)
+    st.write(kpis)
+
+    # -----------------------------
+    # 4. MONTHLY SUMMARY (from analytics.py)
+    # -----------------------------
+    st.subheader("Monthly Summary")
+    monthly_summary = generate_monthly_summary(df)
+    if monthly_summary is not None:
+        st.dataframe(monthly_summary)
+
+    # -----------------------------
+    # 5. MONTHLY SALES TREND
     # -----------------------------
     st.subheader("Monthly Sales Trend")
 
@@ -55,7 +55,7 @@ if uploaded_file:
     st.plotly_chart(fig1)
 
     # -----------------------------
-    # 4. REGION-WISE SALES
+    # 6. REGION-WISE SALES
     # -----------------------------
     st.subheader("Region-wise Sales")
 
@@ -65,7 +65,7 @@ if uploaded_file:
     st.plotly_chart(fig2)
 
     # -----------------------------
-    # 5. PROFIT VS EXPENSES
+    # 7. PROFIT VS EXPENSES
     # -----------------------------
     st.subheader("Profit vs Expenses")
 
@@ -81,35 +81,39 @@ if uploaded_file:
     st.plotly_chart(fig3)
 
     # -----------------------------
-    # 6. EXPORT OPTIONS
+    # 8. EXPORT OPTIONS (using reports.py)
     # -----------------------------
     st.subheader("📁 Export Options")
 
     # CSV Export
-    csv_data = df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Download CSV",
-        data=csv_data,
-        file_name="report.csv",
-        mime="text/csv"
-    )
+    csv_file = export_to_csv(df, "report.csv")
+    if csv_file:
+        with open(csv_file, "rb") as f:
+            st.download_button(
+                label="📥 Download CSV",
+                data=f,
+                file_name="report.csv",
+                mime="text/csv"
+            )
 
     # Excel Export
-    df.to_excel("temp.xlsx", index=False)
-    with open("temp.xlsx", "rb") as f:
-        st.download_button(
-            label="📊 Download Excel",
-            data=f,
-            file_name="report.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    excel_file = export_to_excel(df, "report.xlsx")
+    if excel_file:
+        with open(excel_file, "rb") as f:
+            st.download_button(
+                label="📊 Download Excel",
+                data=f,
+                file_name="report.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
     # PDF Export
-    generate_pdf(df)
-    with open("report.pdf", "rb") as f:
-        st.download_button(
-            label="📄 Download PDF",
-            data=f,
-            file_name="report.pdf",
-            mime="application/pdf"
-        )
+    pdf_file = export_to_pdf(df, "report.pdf")
+    if pdf_file:
+        with open(pdf_file, "rb") as f:
+            st.download_button(
+                label="📄 Download PDF",
+                data=f,
+                file_name="report.pdf",
+                mime="application/pdf"
+            )
