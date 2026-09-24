@@ -32,19 +32,27 @@ def export_to_html(df, filename="report.html"):
 
 
 def export_to_pdf(df, filename="report.pdf"):
-    """Export DataFrame to PDF file."""
+    """Export DataFrame to PDF file (GST optimized)."""
     try:
         pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=10)
         pdf.add_page()
         pdf.set_font("Arial", size=12)
 
-        pdf.cell(200, 10, txt="Business Report Summary", ln=True)
+        pdf.cell(200, 10, txt="GST Business Report", ln=True)
 
+        # Header row
+        pdf.set_font("Arial", size=10, style="B")
         for col in df.columns:
-            try:
-                pdf.cell(200, 10, txt=f"{col}: {df[col].iloc[0]}", ln=True)
-            except:
-                pass
+            pdf.cell(40, 10, txt=str(col), border=1)
+        pdf.ln()
+
+        # Data rows
+        pdf.set_font("Arial", size=8)
+        for _, row in df.iterrows():
+            for col in df.columns:
+                pdf.cell(40, 10, txt=str(row[col]), border=1)
+            pdf.ln()
 
         pdf.output(filename)
         return filename
