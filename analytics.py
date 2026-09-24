@@ -1,35 +1,57 @@
 import pandas as pd
 
 def calculate_kpis(df):
-    """Return clean, user-friendly KPIs for business reporting."""
+    """Return clean, user-friendly KPIs for GST business reporting."""
     kpis = {}
 
-    # Total records
+    # Total records (invoices)
     kpis["Total Records"] = int(len(df))
 
-    # Numeric column summaries (clean output)
-    numeric_cols = df.select_dtypes(include="number").columns
-    for col in numeric_cols:
-        kpis[f"{col.capitalize()} Sum"] = int(df[col].sum())
-        kpis[f"{col.capitalize()} Average"] = float(df[col].mean())
-        kpis[f"{col.capitalize()} Max"] = int(df[col].max())
-        kpis[f"{col.capitalize()} Min"] = int(df[col].min())
+    # Total Sales (Total_Invoice)
+    kpis["Total Sales"] = float(df["Total_Invoice"].sum())
+
+    # Total Tax (CGST + SGST + IGST)
+    kpis["Total Tax Collected"] = float(
+        df["CGST"].sum() + df["SGST"].sum() + df["IGST"].sum()
+    )
+
+    # Average Invoice Value
+    kpis["Average Invoice Value"] = float(df["Total_Invoice"].mean())
+
+    # Highest Invoice
+    kpis["Highest Invoice"] = float(df["Total_Invoice"].max())
+
+    # Lowest Invoice
+    kpis["Lowest Invoice"] = float(df["Total_Invoice"].min())
 
     return kpis
 
 
-def generate_monthly_summary(df, date_column="Date"):
-    """Generate monthly summary based on a date column."""
+def generate_monthly_summary(df, date_column="Invoice_Date"):
+    """Generate monthly summary for GST dataset."""
+
     if date_column not in df.columns:
         return None
 
-    # Convert date column safely
+    # Convert Invoice_Date safely
     df[date_column] = pd.to_datetime(df[date_column], errors="coerce")
 
     # Extract month
-    df["month"] = df[date_column].dt.to_period("M")
+    df["month"] = df[date_column].dt.to_period("M").astype(str)
 
-    # Group by month and sum numeric columns
-    summary = df.groupby("month").sum(numeric_only=True)
+    # Create Sales column
+    df["Sales"] = df["Total_Invoice"]
 
-    return summary.reset_index()
+    # Create Tax column
+    df["Tax"] = df["CGST"] + df["SGST"] + df["IGST"]
+
+    # Group by month
+    summary = df.groupby("month").agg({
+        "Sales": "sum",
+        "Tax": "sum",
+        "Invoice_ID": "count"
+    }).reset_index()
+
+    summary.rename(columns={"Invoice_ID": "Invoice_Count"}, inplace=True)
+
+    return summary
