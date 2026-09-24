@@ -44,46 +44,38 @@ if uploaded_file:
         st.dataframe(monthly_summary)
 
     # -----------------------------
-    # 5. MONTHLY SALES TREND
+    # 5. MONTHLY SALES TREND (GST FIX)
     # -----------------------------
     st.subheader("Monthly Sales Trend")
 
-    df['Date'] = pd.to_datetime(df['Date'])
-    df['Month'] = df['Date'].dt.to_period('M').astype(str)
+    # Convert Invoice_Date
+    df['Invoice_Date'] = pd.to_datetime(df['Invoice_Date'])
 
+    # Create Month column
+    df['Month'] = df['Invoice_Date'].dt.to_period('M').astype(str)
+
+    # Use Total_Invoice as Sales
+    df['Sales'] = df['Total_Invoice']
+
+    # Group by Month
     monthly_sales = df.groupby('Month')['Sales'].sum().reset_index()
 
     fig1 = px.line(monthly_sales, x='Month', y='Sales', title='Monthly Sales Trend')
     st.plotly_chart(fig1)
 
     # -----------------------------
-    # 6. REGION-WISE SALES
+    # 6. REGION-WISE SALES (GST FIX)
     # -----------------------------
     st.subheader("Region-wise Sales")
 
-    region_sales = df.groupby('Region')['Sales'].sum().reset_index()
+    region_sales = df.groupby('Place_of_Supply')['Sales'].sum().reset_index()
 
-    fig2 = px.bar(region_sales, x='Region', y='Sales', title='Sales by Region', color='Region')
+    fig2 = px.bar(region_sales, x='Place_of_Supply', y='Sales',
+                  title='Sales by Region', color='Place_of_Supply')
     st.plotly_chart(fig2)
 
     # -----------------------------
-    # 7. PROFIT VS EXPENSES
-    # -----------------------------
-    st.subheader("Profit vs Expenses")
-
-    profit_expenses = df[['Date', 'Profit', 'Expenses']]
-    profit_expenses['Date'] = pd.to_datetime(profit_expenses['Date'])
-
-    fig3 = px.line(
-        profit_expenses,
-        x='Date',
-        y=['Profit', 'Expenses'],
-        title='Profit vs Expenses Over Time'
-    )
-    st.plotly_chart(fig3)
-
-    # -----------------------------
-    # 8. EXPORT OPTIONS (using reports.py)
+    # 7. EXPORT OPTIONS
     # -----------------------------
     st.subheader("📁 Export Options")
 
